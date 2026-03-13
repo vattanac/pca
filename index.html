@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCA — Complete Learning Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060a14;
+  --bg2: #0d1220;
+  --bg3: #141b2e;
+  --card: #111826;
+  --border: rgba(255,255,255,0.11);
+  --border2: rgba(255,255,255,0.20);
+  --text: #ffffff;
+  --muted: #ccd6f0;
+  --dim: #8899bb;
+  --blue: #4f8ef7;
+  --blue-light: #93bbfc;
+  --blue-dim: rgba(79,142,247,0.12);
+  --teal: #2dd4bf;
+  --teal-dim: rgba(45,212,191,0.12);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251,191,36,0.12);
+  --rose: #fb7185;
+  --rose-dim: rgba(251,113,133,0.12);
+  --green: #4ade80;
+  --green-dim: rgba(74,222,128,0.12);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.12);
+  --r: 12px;
+  --r-lg: 18px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.75;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── LAYOUT ── */
+.wrap { max-width: 1000px; margin: 0 auto; padding: 0 2rem; }
+
+/* ── SIDEBAR NAV ── */
+#sidenav {
+  position: fixed; left: 0; top: 0; height: 100vh; width: 220px;
+  background: var(--card); border-right: 1px solid var(--border);
+  padding: 2rem 0; overflow-y: auto; z-index: 100;
+  display: flex; flex-direction: column; gap: 2px;
+  transition: transform 0.3s;
+}
+#sidenav .nav-logo {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.25rem;
+  color: var(--blue); padding: 0 1.5rem 1.5rem; letter-spacing: -0.02em;
+  border-bottom: 1px solid var(--border); margin-bottom: 1rem;
+}
+#sidenav .nav-logo span { color: var(--teal); }
+#sidenav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 1.5rem; font-size: 1rem; color: var(--muted);
+  text-decoration: none; border-left: 2px solid transparent;
+  transition: all 0.2s; font-weight: 600;
+}
+#sidenav a:hover { color: var(--text); background: var(--blue-dim); border-left-color: var(--blue); }
+#sidenav a.active { color: var(--blue-light); background: var(--blue-dim); border-left-color: var(--blue); }
+#sidenav .nav-section {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; color: var(--dim);
+  text-transform: uppercase; padding: 1rem 1.5rem 0.3rem;
+}
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* ── MAIN CONTENT ── */
+main { margin-left: 220px; min-height: 100vh; }
+
+/* ── HERO ── */
+.hero {
+  padding: 5rem 2rem 4rem;
+  max-width: 1000px; margin: 0 auto;
+  position: relative;
+}
+.hero-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--blue-dim); border: 1px solid rgba(91,155,255,0.35);
+  color: var(--blue-light); font-size: 0.95rem; font-weight: 600;
+  padding: 6px 16px; border-radius: 100px; margin-bottom: 1.5rem; letter-spacing: 0.04em;
+}
+.hero h1 {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(2.8rem, 6vw, 4.5rem); line-height: 1.1;
+  letter-spacing: -0.03em; color: #ffffff; margin-bottom: 1rem;
+}
+.hero h1 em { font-style: normal; color: var(--blue); }
+.hero p {
+  font-size: 1.25rem; color: var(--muted); max-width: 600px;
+  line-height: 1.75; margin-bottom: 2.5rem; font-weight: 400;
+}
+.hero-tags { display: flex; gap: 10px; flex-wrap: wrap; }
+.tag {
+  padding: 7px 16px; border-radius: 100px; font-size: 0.9rem; font-weight: 600;
+  border: 1px solid var(--border2); color: var(--muted); background: var(--bg2);
+}
+
+/* ── SECTIONS ── */
+section { padding: 3.5rem 2rem; max-width: 1000px; margin: 0 auto; border-top: 1px solid var(--border); }
+section:first-of-type { border-top: none; }
+
+.section-eyebrow {
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--blue); margin-bottom: 0.6rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-eyebrow::before { content: ''; width: 20px; height: 2px; background: var(--blue); }
+
+h2 {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 2.2rem; letter-spacing: -0.025em; color: #ffffff;
+  margin-bottom: 0.5rem; line-height: 1.2;
+}
+h3 {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 1.45rem; color: #ffffff; margin-bottom: 0.5rem; letter-spacing: -0.01em;
+}
+p { color: var(--muted); margin-bottom: 1rem; font-size: 1.05rem; }
+p:last-child { margin-bottom: 0; }
+strong { color: #ffffff; font-weight: 700; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 1.5rem;
+}
+.card-grid { display: grid; gap: 16px; }
+.card-grid-2 { grid-template-columns: 1fr 1fr; }
+.card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* ── INFO BOX ── */
+.info-box {
+  border-radius: var(--r); padding: 1.2rem 1.4rem;
+  border-left: 3px solid; margin: 1.5rem 0;
+}
+.info-box.blue { background: var(--blue-dim); border-left-color: var(--blue); }
+.info-box.teal { background: var(--teal-dim); border-left-color: var(--teal); }
+.info-box.amber { background: var(--amber-dim); border-left-color: var(--amber); }
+.info-box.rose { background: var(--rose-dim); border-left-color: var(--rose); }
+.info-box.green { background: var(--green-dim); border-left-color: var(--green); }
+.info-box .info-title {
+  font-weight: 700; font-size: 0.95rem; letter-spacing: 0.04em;
+  text-transform: uppercase; margin-bottom: 0.5rem;
+}
+.info-box.blue .info-title { color: var(--blue-light); }
+.info-box.teal .info-title { color: var(--teal); }
+.info-box.amber .info-title { color: var(--amber); }
+.info-box.rose .info-title { color: var(--rose); }
+.info-box.green .info-title { color: var(--green); }
+
+/* ── CODE ── */
+pre {
+  background: #080d18; border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1.6rem; overflow-x: auto;
+  margin: 1.2rem 0; font-family: 'DM Mono', monospace; font-size: 0.95rem;
+  line-height: 1.9;
+}
+code { font-family: 'DM Mono', monospace; }
+
+/* ── COPY BUTTON ── */
+.code-block {
+  position: relative; margin: 1.2rem 0;
+}
+.code-block pre { margin: 0; }
+.copy-btn {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 6px 14px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+  color: var(--muted); cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: center; gap: 6px; z-index: 10;
+  backdrop-filter: blur(4px);
+}
+.copy-btn:hover { background: rgba(91,155,255,0.18); border-color: var(--blue); color: var(--blue-light); }
+.copy-btn.copied { background: rgba(74,222,128,0.18); border-color: var(--green); color: var(--green); }
+.copy-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+body.light .copy-btn { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.18); color: var(--dim); }
+body.light .copy-btn:hover { background: rgba(26,92,216,0.12); border-color: var(--blue); color: var(--blue); }
+.kw { color: #ff7b72; }
+.fn { color: #79c0ff; }
+.st { color: #a5d6ff; }
+.cm { color: #8b949e; font-style: italic; }
+.nm { color: #f8c555; }
+.op { color: var(--teal); }
+.builtin { color: var(--purple); }
+
+/* ── STEPS ── */
+.steps { display: flex; flex-direction: column; gap: 0; margin: 1.5rem 0; }
+.step-item {
+  display: flex; gap: 0; position: relative;
+}
+.step-item:not(:last-child)::after {
+  content: ''; position: absolute; left: 20px; top: 44px;
+  width: 1px; height: calc(100% - 10px); background: var(--border2);
+}
+.step-num {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+  margin-right: 1.2rem; margin-bottom: 1.5rem; margin-top: 2px;
+  border: 1px solid;
+}
+.step-content { flex: 1; padding-bottom: 1.5rem; }
+.step-content h4 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.2rem; color: #ffffff; margin-bottom: 0.4rem; }
+.step-content p { font-size: 1rem; margin-bottom: 0.5rem; }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; margin: 1.2rem 0; border-radius: var(--r); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+thead tr { background: var(--bg3); }
+thead th { padding: 14px 18px; text-align: left; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+tbody td { padding: 14px 18px; border-bottom: 1px solid var(--border); color: #ffffff; vertical-align: top; font-size: 1rem; font-weight: 400; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg2); }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-block; padding: 3px 12px; border-radius: 100px;
+  font-size: 0.82rem; font-weight: 700;
+}
+.badge-blue { background: var(--blue-dim); color: var(--blue-light); border: 1px solid rgba(79,142,247,0.3); }
+.badge-teal { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
+.badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+.badge-rose { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(251,113,133,0.3); }
+.badge-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+.badge-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+
+/* ── METRIC CARDS ── */
+.metric {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 1.2rem; text-align: center;
+}
+.metric-val { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; line-height: 1.1; }
+.metric-label { font-size: 0.95rem; color: var(--muted); margin-top: 5px; font-weight: 500; }
+
+/* ── FORMULA ── */
+.formula {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1.3rem 1.5rem;
+  font-family: 'DM Mono', monospace; font-size: 1.15rem;
+  color: var(--teal); text-align: center; margin: 1rem 0;
+  letter-spacing: 0.02em; font-weight: 500;
+}
+
+/* ── COMPARISON ── */
+.vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 1.2rem 0; }
+.vs-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+.vs-head { padding: 12px 18px; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.vs-body { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.vs-row { font-size: 1rem; color: var(--muted); display: flex; align-items: flex-start; gap: 8px; font-weight: 400; line-height: 1.6; }
+.check { color: var(--green); flex-shrink: 0; }
+.cross { color: var(--rose); flex-shrink: 0; }
+
+/* ── BAR ── */
+.bar-group { display: flex; flex-direction: column; gap: 10px; margin: 1rem 0; }
+.bar-row { display: flex; align-items: center; gap: 12px; }
+.bar-lbl { font-size: 0.95rem; color: var(--muted); min-width: 100px; font-weight: 500; }
+.bar-track { flex: 1; height: 26px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 10px; font-size: 0.85rem; font-weight: 700; transition: width 1s ease; }
+.bar-val { font-size: 0.95rem; font-weight: 700; min-width: 40px; text-align: right; }
+
+/* ── QUIZ ── */
+.quiz-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 1.8rem; margin-bottom: 1.5rem;
+}
+.quiz-q { font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 1rem; }
+.quiz-opts { display: flex; flex-direction: column; gap: 8px; }
+.quiz-opt {
+  padding: 13px 18px; border-radius: var(--r); border: 1px solid var(--border);
+  cursor: pointer; font-size: 1rem; color: var(--muted); transition: all 0.2s;
+  background: var(--bg2); font-weight: 500;
+}
+.quiz-opt:hover { border-color: var(--blue); color: var(--text); }
+.quiz-opt.correct { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+.quiz-opt.wrong { border-color: var(--rose); background: var(--rose-dim); color: var(--rose); }
+.quiz-opt.reveal { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+.quiz-exp { font-size: 1rem; color: var(--muted); margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border); display: none; line-height: 1.7; }
+.quiz-exp.show { display: block; }
+
+/* ── MATRIX VIS ── */
+.matrix-wrap { overflow-x: auto; margin: 1rem 0; }
+.matrix-table { border-collapse: collapse; font-family: 'DM Mono', monospace; font-size: 1rem; }
+.matrix-table td { padding: 10px 18px; text-align: center; border: 1px solid var(--border); min-width: 80px; }
+.matrix-table .mh { background: var(--bg3); color: var(--muted); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; }
+.heat-1 { background: rgba(79,142,247,0.08); color: var(--blue-light); }
+.heat-2 { background: rgba(79,142,247,0.18); color: var(--blue-light); }
+.heat-3 { background: rgba(79,142,247,0.32); color: var(--blue); }
+.heat-4 { background: rgba(79,142,247,0.55); color: #fff; }
+.heat-neg { background: rgba(251,113,133,0.2); color: var(--rose); }
+
+/* ── SCREE ── */
+.scree-vis { display: flex; align-items: flex-end; gap: 10px; height: 120px; margin: 1.2rem 0; padding: 0 0.5rem; }
+.scree-bar { flex: 1; border-radius: 4px 4px 0 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; font-size: 0.75rem; font-weight: 600; transition: opacity 0.3s; cursor: default; }
+.scree-bar:hover { opacity: 0.8; }
+.scree-label { font-size: 0.88rem; color: var(--muted); text-align: center; font-weight: 600; }
+
+/* ── EIGEN VIS ── */
+.eigen-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.eigen-row:last-child { border-bottom: none; }
+.eigen-pc { font-family: 'DM Mono', monospace; font-size: 0.95rem; color: var(--blue-light); min-width: 40px; font-weight: 600; }
+.eigen-bar-track { flex: 1; height: 22px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.eigen-bar { height: 100%; border-radius: 3px; }
+.eigen-val { font-family: 'DM Mono', monospace; font-size: 0.92rem; color: var(--muted); min-width: 50px; text-align: right; font-weight: 500; }
+.eigen-cum { font-size: 0.88rem; color: var(--dim); min-width: 48px; text-align: right; }
+
+/* ── GLOSSARY ── */
+.glossary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 1.2rem 0; }
+.gloss-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 1.1rem 1.2rem;
+}
+.gloss-term { font-family: 'DM Mono', monospace; font-size: 1rem; color: var(--teal); margin-bottom: 6px; font-weight: 500; }
+.gloss-def { font-size: 0.95rem; color: var(--muted); line-height: 1.6; }
+
+/* ── FLOW DIAGRAM ── */
+.flow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin: 1.5rem 0; }
+.flow-box {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 0.9rem 1.1rem; flex: 1; min-width: 120px; text-align: center;
+}
+.flow-box .fb-num { font-size: 0.78rem; color: var(--dim); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+.flow-box .fb-title { font-size: 0.95rem; font-weight: 700; color: #ffffff; line-height: 1.3; }
+.flow-arrow { color: var(--dim); font-size: 1.4rem; padding: 0 6px; flex-shrink: 0; }
+
+/* ── TOGGLE ── */
+.toggle-wrap { margin: 1.5rem 0; }
+.toggle-btns { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+.toggle-btn {
+  padding: 10px 20px; border-radius: 100px; font-size: 0.95rem; font-weight: 600;
+  border: 1px solid var(--border); background: var(--bg2); color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.toggle-btn.active { background: var(--blue-dim); border-color: var(--blue); color: var(--blue-light); }
+.toggle-pane { display: none; }
+.toggle-pane.active { display: block; }
+
+/* ── MOBILE NAV TOGGLE ── */
+#nav-toggle {
+  display: none; position: fixed; top: 1rem; left: 1rem; z-index: 200;
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 12px; cursor: pointer; color: var(--text); font-size: 1.2rem;
+}
+
+/* ── PROGRESS ── */
+#progress-bar {
+  position: fixed; top: 0; left: 220px; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--blue), var(--teal));
+  transform-origin: left; transform: scaleX(0); z-index: 200; transition: transform 0.1s;
+}
+
+/* ── LIGHT MODE ── */
+body.light {
+  --bg: #f0f4fc;
+  --bg2: #e4eaf7;
+  --bg3: #d8e0f0;
+  --card: #ffffff;
+  --border: rgba(0,0,0,0.09);
+  --border2: rgba(0,0,0,0.16);
+  --text: #0a0e1a;
+  --muted: #2a3550;
+  --dim: #6b7a99;
+  --blue: #1a5cd8;
+  --blue-light: #1a5cd8;
+  --blue-dim: rgba(26,92,216,0.10);
+  --teal: #0a8070;
+  --teal-dim: rgba(10,128,112,0.10);
+  --amber: #b07000;
+  --amber-dim: rgba(176,112,0,0.10);
+  --rose: #c0002a;
+  --rose-dim: rgba(192,0,42,0.10);
+  --green: #0a7a30;
+  --green-dim: rgba(10,122,48,0.10);
+  --purple: #6020c0;
+  --purple-dim: rgba(96,32,192,0.10);
+}
+body.light pre { background: #1a2035; }
+body.light ::-webkit-scrollbar-track { background: var(--bg2); }
+
+/* ── DARK MODE TOGGLE BUTTON ── */
+#theme-toggle {
+  position: fixed; top: 1rem; right: 1rem; z-index: 300;
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 100px; padding: 8px 16px; cursor: pointer;
+  font-size: 0.9rem; font-weight: 700; color: var(--muted);
+  display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+#theme-toggle:hover { color: var(--text); border-color: var(--blue); }
+#theme-toggle .icon { font-size: 1rem; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.fade-up { animation: fadeUp 0.5s ease forwards; opacity: 0; }
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  #sidenav { transform: translateX(-100%); }
+  #sidenav.open { transform: translateX(0); }
+  main { margin-left: 0; }
+  #progress-bar { left: 0; }
+  #nav-toggle { display: block; }
+  .card-grid-4 { grid-template-columns: 1fr 1fr; }
+  .card-grid-3 { grid-template-columns: 1fr 1fr; }
+  .card-grid-2 { grid-template-columns: 1fr; }
+  .glossary-grid { grid-template-columns: 1fr; }
+  .vs-grid { grid-template-columns: 1fr; }
+  .flow { gap: 6px; }
+  .flow-arrow { display: none; }
+  h2 { font-size: 1.6rem; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<button id="nav-toggle" onclick="toggleNav()">☰</button>
+<button id="theme-toggle" onclick="toggleTheme()">
+  <span class="icon" id="theme-icon">☀️</span>
+  <span id="theme-label">Light Mode</span>
+</button>
+
+<!-- SIDEBAR -->
+<nav id="sidenav">
+  <div class="nav-logo">PCA<span>.</span>guide</div>
+
+  <div class="nav-section">Foundations</div>
+  <a href="#intro"><span class="nav-dot"></span>What is PCA?</a>
+  <a href="#why"><span class="nav-dot"></span>Why use PCA?</a>
+  <a href="#intuition"><span class="nav-dot"></span>The Intuition</a>
+
+  <div class="nav-section">Mathematics</div>
+  <a href="#math-standardize"><span class="nav-dot"></span>Step 1: Standardize</a>
+  <a href="#math-cov"><span class="nav-dot"></span>Step 2: Covariance</a>
+  <a href="#math-eigen"><span class="nav-dot"></span>Step 3: Eigenvalues</a>
+  <a href="#math-select"><span class="nav-dot"></span>Step 4: Select k</a>
+  <a href="#math-transform"><span class="nav-dot"></span>Step 5: Transform</a>
+
+  <div class="nav-section">In Practice</div>
+  <a href="#python"><span class="nav-dot"></span>Python Code</a>
+  <a href="#variance"><span class="nav-dot"></span>Choosing k</a>
+  <a href="#loadings"><span class="nav-dot"></span>Loadings</a>
+  <a href="#pros-cons"><span class="nav-dot"></span>Pros & Cons</a>
+
+  <div class="nav-section">Applications</div>
+  <a href="#use-cases"><span class="nav-dot"></span>When to use</a>
+  <a href="#variants"><span class="nav-dot"></span>PCA Variants</a>
+  <a href="#glossary"><span class="nav-dot"></span>Glossary</a>
+  <a href="#quiz"><span class="nav-dot"></span>Self-Test Quiz</a>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label fade-up">Complete Learning Guide · Data Science</div>
+  <h1 class="fade-up delay-1">Principal<br><em>Component</em><br>Analysis</h1>
+  <p class="fade-up delay-2">A complete, in-depth guide to understanding PCA from first principles — covering the math, the intuition, Python implementation, and real applications.</p>
+  <div class="hero-tags fade-up delay-3">
+    <span class="tag">Dimensionality Reduction</span>
+    <span class="tag">Unsupervised Learning</span>
+    <span class="tag">Linear Algebra</span>
+    <span class="tag">Feature Engineering</span>
+    <span class="tag">scikit-learn</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ WHAT IS PCA -->
+<section id="intro">
+  <div class="section-eyebrow">Foundations · 01</div>
+  <h2>What is PCA?</h2>
+  <p>Principal Component Analysis (PCA) is a <strong>dimensionality reduction technique</strong> that transforms a dataset with many correlated features into a smaller set of uncorrelated variables called <strong>principal components</strong>.</p>
+  <p>Each principal component is a linear combination of the original features, ordered by the amount of variance it explains — PC1 always explains the most variance, PC2 the second most, and so on.</p>
+
+  <div class="info-box blue">
+    <div class="info-title">Core Idea</div>
+    PCA finds the directions (axes) in your feature space along which the data varies the most, then projects your data onto those directions. The result is a new, compressed representation that keeps as much information as possible.
+  </div>
+
+  <div class="card-grid card-grid-3" style="margin-top:1.5rem">
+    <div class="metric">
+      <div class="metric-val" style="color:var(--blue)">1901</div>
+      <div class="metric-label">Invented by Karl Pearson</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val" style="color:var(--teal)">Linear</div>
+      <div class="metric-label">Transformation type</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val" style="color:var(--amber)">SVD</div>
+      <div class="metric-label">Computed via Singular Value Decomposition</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ WHY PCA -->
+<section id="why">
+  <div class="section-eyebrow">Foundations · 02</div>
+  <h2>Why use PCA?</h2>
+  <p>Modern datasets often have <strong>hundreds or thousands of features</strong>. This creates several problems that PCA is specifically designed to solve.</p>
+
+  <div class="card-grid card-grid-2" style="margin-top:1.5rem">
+    <div class="card">
+      <div style="font-size:1.5rem;margin-bottom:0.7rem">⚡</div>
+      <h3>Curse of Dimensionality</h3>
+      <p>As features increase, the data becomes increasingly sparse. ML models need exponentially more data to learn patterns, and they tend to overfit.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:1.5rem;margin-bottom:0.7rem">🔗</div>
+      <h3>Multicollinearity</h3>
+      <p>Correlated features carry redundant information. For example, "height in cm" and "height in inches" say the same thing. PCA merges them into one component.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:1.5rem;margin-bottom:0.7rem">👁</div>
+      <h3>Visualization</h3>
+      <p>Humans can only visualize 2D or 3D. PCA reduces any dataset to 2–3 components so you can actually see the structure — clusters, outliers, patterns.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:1.5rem;margin-bottom:0.7rem">🚀</div>
+      <h3>Speed</h3>
+      <p>Training a model on 50 features vs 500 features can be 10–100× faster. PCA removes the noise and redundancy before training.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ INTUITION -->
+<section id="intuition">
+  <div class="section-eyebrow">Foundations · 03</div>
+  <h2>The Intuition</h2>
+
+  <div class="toggle-wrap">
+    <div class="toggle-btns">
+      <button class="toggle-btn active" onclick="switchTab('analogy','photo')">Photo Analogy</button>
+      <button class="toggle-btn" onclick="switchTab('analogy','shadow')">Shadow Analogy</button>
+      <button class="toggle-btn" onclick="switchTab('analogy','axis')">New Axes</button>
+    </div>
+
+    <div id="analogy-photo" class="toggle-pane active">
+      <div class="info-box blue">
+        <div class="info-title">📸 The Photography Analogy</div>
+        When you take a photo of a 3D object, you project it onto a 2D surface (the photo). You lose one dimension, but if you take the photo from the <em>right angle</em>, you capture the most important visual information. PCA works exactly like this — it finds the "best angle" to project your data, preserving as much variance (information) as possible.
+      </div>
+    </div>
+
+    <div id="analogy-shadow" class="toggle-pane">
+      <div class="info-box teal">
+        <div class="info-title">🔦 The Shadow Analogy</div>
+        Shine a flashlight on a 3D object and observe the shadow. The shadow is 2D but its shape depends on the angle of light. PCA finds the angle that casts the <em>largest, most informative shadow</em> — the projection that preserves the most spread (variance) in your data.
+      </div>
+    </div>
+
+    <div id="analogy-axis" class="toggle-pane">
+      <div class="info-box amber">
+        <div class="info-title">📐 Rotating the Axes</div>
+        PCA is essentially a rotation of your coordinate system. Instead of the original X, Y, Z axes, PCA creates new axes (PC1, PC2, PC3...) that are aligned with the directions of maximum variance in your data. The first new axis (PC1) points in the direction where the data spreads out the most.
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:1.5rem">Simple Example: Height & Weight</h3>
+  <p>Suppose you have data on people's height and weight. These two features are correlated — taller people tend to weigh more.</p>
+
+  <div class="info-box teal">
+    <div class="info-title">What PCA does</div>
+    <strong style="color:var(--teal)">PC1 (main direction)</strong> — a diagonal axis from "short & light" to "tall & heavy". This single axis captures most of the body size information from both height and weight.<br><br>
+    <strong style="color:var(--muted)">PC2 (perpendicular)</strong> — captures the remaining variation: people who deviate from the height-weight trend (muscular, etc.). Much less important.
+  </div>
+
+  <p>Result: You compress 2 features into 1 (PC1) while keeping ~95% of the information. You traded a little accuracy for a huge simplification.</p>
+</section>
+
+<!-- ════════════════════════════════════════════ STEP 1 -->
+<section id="math-standardize">
+  <div class="section-eyebrow">Mathematics · Step 1</div>
+  <h2>Standardize the Data</h2>
+  <p>Before applying PCA, we must standardize each feature so that it has <strong>mean = 0</strong> and <strong>standard deviation = 1</strong>. This is called <em>z-score normalization</em>.</p>
+
+  <div class="formula">z = (x − μ) / σ</div>
+
+  <p>where <strong>μ</strong> is the feature mean and <strong>σ</strong> is the standard deviation.</p>
+
+  <div class="info-box rose">
+    <div class="info-title">⚠️ Why this matters</div>
+    Without standardization, features with large scales dominate the analysis. For example, if you have "salary in USD" (range: 30,000–200,000) and "age" (range: 20–65), PCA will treat salary as ~3,000× more important than age just because of units. Standardization puts all features on equal footing.
+  </div>
+
+  <h3 style="margin-top:1.5rem">Example: Student Data</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Math (raw)</th><th>Science (raw)</th><th>Hours (raw)</th><th>Math (std)</th><th>Science (std)</th><th>Hours (std)</th></tr></thead>
+      <tbody>
+        <tr><td>Alice</td><td>85</td><td>82</td><td>8</td><td class="badge-blue" style="display:table-cell">+0.30</td><td>+0.22</td><td>+0.41</td></tr>
+        <tr><td>Bob</td><td>60</td><td>65</td><td>5</td><td style="color:var(--rose)">−1.39</td><td style="color:var(--rose)">−1.24</td><td style="color:var(--rose)">−1.23</td></tr>
+        <tr><td>Carol</td><td>92</td><td>90</td><td>10</td><td style="color:var(--green)">+1.39</td><td style="color:var(--green)">+1.35</td><td style="color:var(--green)">+1.64</td></tr>
+        <tr><td>Dave</td><td>70</td><td>68</td><td>6</td><td style="color:var(--rose)">−0.69</td><td style="color:var(--rose)">−0.79</td><td style="color:var(--rose)">−0.41</td></tr>
+        <tr><td>Eve</td><td>78</td><td>75</td><td>7</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:0.85rem">After standardization, all three features have mean=0 and std=1. Now PCA treats them equally.</p>
+
+<pre><span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+data = {
+    <span class="st">'math'</span>:    [<span class="nm">85</span>, <span class="nm">60</span>, <span class="nm">92</span>, <span class="nm">70</span>, <span class="nm">78</span>],
+    <span class="st">'science'</span>: [<span class="nm">82</span>, <span class="nm">65</span>, <span class="nm">90</span>, <span class="nm">68</span>, <span class="nm">75</span>],
+    <span class="st">'hours'</span>:   [<span class="nm">8</span>,  <span class="nm">5</span>,  <span class="nm">10</span>, <span class="nm">6</span>,  <span class="nm">7</span> ]
+}
+
+scaler = StandardScaler()
+X_scaled = scaler.<span class="fn">fit_transform</span>(pd.<span class="fn">DataFrame</span>(data))
+
+<span class="cm"># X_scaled[:,0].mean() ≈ 0.0   X_scaled[:,0].std() ≈ 1.0</span>
+<span class="fn">print</span>(<span class="fn">f</span><span class="st">"Mean: {X_scaled.mean(axis=0).round(10)}"</span>)   <span class="cm"># [0. 0. 0.]</span>
+<span class="fn">print</span>(<span class="fn">f</span><span class="st">"Std:  {X_scaled.std(axis=0).round(2)}"</span>)     <span class="cm"># [1. 1. 1.]</span></pre>
+</section>
+
+<!-- ════════════════════════════════════════════ STEP 2 -->
+<section id="math-cov">
+  <div class="section-eyebrow">Mathematics · Step 2</div>
+  <h2>Compute the Covariance Matrix</h2>
+  <p>The covariance matrix tells us how much each pair of features varies together. It is an n×n symmetric matrix where n is the number of features.</p>
+
+  <div class="formula">Cov(X,Y) = Σ [(xᵢ − x̄)(yᵢ − ȳ)] / (n−1)</div>
+
+  <p>The diagonal contains the variance of each feature. Off-diagonal elements show how two features move together:</p>
+  <ul style="color:var(--muted);padding-left:1.5rem;line-height:2;font-size:0.95rem">
+    <li><strong style="color:var(--green)">Positive covariance</strong> → features rise and fall together</li>
+    <li><strong style="color:var(--rose)">Negative covariance</strong> → one rises when the other falls</li>
+    <li><strong style="color:var(--muted)">Near zero</strong> → features are largely independent</li>
+  </ul>
+
+  <h3 style="margin-top:1.5rem">Covariance Matrix — Student Example (3×3)</h3>
+  <p style="font-size:0.88rem;margin-bottom:0.8rem">Color intensity = strength of correlation. Darker blue = stronger positive relationship.</p>
+  <div class="matrix-wrap">
+    <table class="matrix-table">
+      <tr>
+        <td class="mh"></td>
+        <td class="mh">Math</td>
+        <td class="mh">Science</td>
+        <td class="mh">Hours</td>
+      </tr>
+      <tr>
+        <td class="mh">Math</td>
+        <td class="heat-4"><strong>1.00</strong></td>
+        <td class="heat-4">0.97</td>
+        <td class="heat-4">0.98</td>
+      </tr>
+      <tr>
+        <td class="mh">Science</td>
+        <td class="heat-4">0.97</td>
+        <td class="heat-4"><strong>1.00</strong></td>
+        <td class="heat-4">0.96</td>
+      </tr>
+      <tr>
+        <td class="mh">Hours</td>
+        <td class="heat-4">0.98</td>
+        <td class="heat-4">0.96</td>
+        <td class="heat-4"><strong>1.00</strong></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="info-box blue">
+    <div class="info-title">Interpretation</div>
+    All correlations are close to 0.97–0.98. This means Math, Science, and Study Hours are almost perfectly correlated — they all measure the same underlying thing: <strong>academic effort and ability</strong>. PCA will compress all three into a single component.
+  </div>
+
+<pre>X_cov = np.<fn>cov</fn>(X_scaled.T)  <span class="cm"># transpose: features as rows</span>
+
+<span class="fn">print</span>(X_cov.round(<span class="nm">2</span>))
+<span class="cm"># [[1.   0.97 0.98]</span>
+<span class="cm">#  [0.97 1.   0.96]</span>
+<span class="cm">#  [0.98 0.96 1.  ]]</span></pre>
+</section>
+
+<!-- ════════════════════════════════════════════ STEP 3 -->
+<section id="math-eigen">
+  <div class="section-eyebrow">Mathematics · Step 3</div>
+  <h2>Eigenvalues & Eigenvectors</h2>
+  <p>This is the mathematical core of PCA. We decompose the covariance matrix to find its <strong>eigenvalues</strong> and <strong>eigenvectors</strong>.</p>
+
+  <div class="card-grid card-grid-2" style="margin:1.2rem 0">
+    <div class="card">
+      <div class="badge badge-teal" style="margin-bottom:0.7rem">Eigenvectors</div>
+      <h3>The New Axes (Directions)</h3>
+      <p>Eigenvectors define the <strong>directions</strong> of the new feature space — the principal components. They are always perpendicular (orthogonal) to each other.</p>
+      <p>Each eigenvector is a unit vector (length = 1) pointing in the direction of maximum variance, given that previous directions have already been accounted for.</p>
+    </div>
+    <div class="card">
+      <div class="badge badge-amber" style="margin-bottom:0.7rem">Eigenvalues</div>
+      <h3>The Importance (Magnitude)</h3>
+      <p>Eigenvalues tell us <strong>how much variance</strong> each eigenvector (principal component) captures. Larger eigenvalue = more important component.</p>
+      <p>The sum of all eigenvalues = total variance in the dataset. So each eigenvalue / total = percentage of variance explained.</p>
+    </div>
+  </div>
+
+  <div class="formula">A · v = λ · v</div>
+  <p style="text-align:center;font-size:0.88rem;color:var(--dim);margin-top:0.3rem">where A = covariance matrix, v = eigenvector, λ = eigenvalue</p>
+
+  <h3 style="margin-top:1.8rem">Eigenvalues for Student Dataset</h3>
+  <div style="margin:1rem 0">
+    <div class="eigen-row">
+      <span class="eigen-pc">PC1</span>
+      <div class="eigen-bar-track"><div class="eigen-bar" style="width:98%;background:var(--blue)"></div></div>
+      <span class="eigen-val" style="color:var(--blue)">λ=2.94</span>
+      <span class="eigen-cum">98.0%</span>
+    </div>
+    <div class="eigen-row">
+      <span class="eigen-pc">PC2</span>
+      <div class="eigen-bar-track"><div class="eigen-bar" style="width:1.6%;background:var(--muted)"></div></div>
+      <span class="eigen-val">λ=0.05</span>
+      <span class="eigen-cum">99.6%</span>
+    </div>
+    <div class="eigen-row">
+      <span class="eigen-pc">PC3</span>
+      <div class="eigen-bar-track"><div class="eigen-bar" style="width:0.4%;background:var(--dim)"></div></div>
+      <span class="eigen-val" style="color:var(--dim)">λ=0.01</span>
+      <span class="eigen-cum">100%</span>
+    </div>
+  </div>
+
+  <div class="info-box teal">
+    <div class="info-title">Key Insight</div>
+    PC1 alone captures <strong>98% of all variance</strong>! This means we can reduce 3 features to just 1 component and keep almost all information. The reason: Math, Science, and Hours are so correlated they basically measure one thing.
+  </div>
+
+<pre>eigenvalues, eigenvectors = np.linalg.<fn>eigh</fn>(X_cov)
+
+<span class="cm"># Sort by eigenvalue descending</span>
+idx = np.<fn>argsort</span>(eigenvalues)[::<span class="nm">-1</span>]
+eigenvalues  = eigenvalues[idx]
+eigenvectors = eigenvectors[:, idx]
+
+variance_explained = eigenvalues / eigenvalues.<fn>sum</span>()
+cumulative         = np.<fn>cumsum</span>(variance_explained)
+
+<span class="fn">print</span>(<span class="st">"Eigenvalues:"</span>,         eigenvalues.<fn>round</span>(<span class="nm">3</span>))  <span class="cm"># [2.94  0.05  0.01]</span>
+<span class="fn">print</span>(<span class="st">"Variance explained:"</span>,  variance_explained.<fn>round</span>(<span class="nm">3</span>))
+<span class="fn">print</span>(<span class="st">"Cumulative variance:"</span>, cumulative.<fn>round</span>(<span class="nm">3</span>))</pre>
+</section>
+
+<!-- ════════════════════════════════════════════ STEP 4 -->
+<section id="math-select">
+  <div class="section-eyebrow">Mathematics · Step 4</div>
+  <h2>Selecting k Components</h2>
+  <p>After computing the eigenvalues, we choose how many principal components (<strong>k</strong>) to keep. This is one of the most important decisions in PCA.</p>
+
+  <h3>Three Rules for Choosing k</h3>
+  <div class="steps" style="margin-top:1rem">
+    <div class="step-item">
+      <div class="step-num" style="background:var(--blue-dim);color:var(--blue);border-color:var(--blue)">1</div>
+      <div class="step-content">
+        <h4>Variance Threshold Rule (most common)</h4>
+        <p>Keep enough components to explain at least <strong>85–95% of cumulative variance</strong>. The threshold depends on your use case — visualization needs 2–3 components; models can tolerate 85%.</p>
+        <div class="formula" style="font-size:0.88rem;text-align:left;padding:0.8rem">Σλᵢ / Σλ_all ≥ 0.95 → choose k where cumulative ≥ 95%</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num" style="background:var(--teal-dim);color:var(--teal);border-color:var(--teal)">2</div>
+      <div class="step-content">
+        <h4>Kaiser Rule (eigenvalue ≥ 1)</h4>
+        <p>Keep components with eigenvalue <strong>≥ 1.0</strong>. The logic: if a component explains less variance than a single original feature (variance = 1 after standardization), it's not worth keeping.</p>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num" style="background:var(--amber-dim);color:var(--amber);border-color:var(--amber)">3</div>
+      <div class="step-content">
+        <h4>Scree Plot (visual elbow method)</h4>
+        <p>Plot the eigenvalues in descending order and look for the <strong>"elbow"</strong> — the point where they stop dropping sharply. Keep components before the elbow.</p>
+        <div class="scree-vis" style="margin-top:1rem">
+          <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+            <div class="scree-bar" style="height:100%;background:var(--blue);color:#fff">98%</div>
+            <div class="scree-label">PC1</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+            <div class="scree-bar" style="height:8%;background:var(--muted);color:transparent">1.6</div>
+            <div class="scree-label">PC2</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+            <div class="scree-bar" style="height:4%;background:var(--dim);color:transparent">0.4</div>
+            <div class="scree-label">PC3</div>
+          </div>
+        </div>
+        <p style="font-size:0.85rem;margin-top:0.3rem">Clear elbow after PC1 — keep only 1 component for this dataset.</p>
+      </div>
+    </div>
+  </div>
+
+<pre><span class="kw">from</span> sklearn.decomposition <span class="kw">import</span> PCA
+
+<span class="cm"># Option A: specify exact number of components</span>
+pca = PCA(n_components=<span class="nm">2</span>)
+
+<span class="cm"># Option B: specify variance threshold (auto-selects k)</span>
+pca = PCA(n_components=<span class="nm">0.95</span>)  <span class="cm"># keep 95% of variance</span>
+
+pca.<fn>fit</span>(X_scaled)
+<span class="fn">print</span>(<span class="st">f"Components kept: {pca.n_components_}"</span>)
+<span class="fn">print</span>(pca.explained_variance_ratio_)  <span class="cm"># per-component %</span>
+<span class="fn">print</span>(pca.explained_variance_ratio_.<fn>cumsum</span>())  <span class="cm"># cumulative %</span></pre>
+</section>
+
+<!-- ════════════════════════════════════════════ STEP 5 -->
+<section id="math-transform">
+  <div class="section-eyebrow">Mathematics · Step 5</div>
+  <h2>Transform the Data</h2>
+  <p>Once we've selected k components, we project the original data onto the new principal component axes. This is a simple matrix multiplication.</p>
+
+  <div class="formula">X_new = X_scaled · W</div>
+  <p style="text-align:center;font-size:0.88rem;color:var(--dim);margin-top:0.3rem">where W is the matrix of k eigenvectors (shape: n_features × k)</p>
+
+  <p>The result is a new dataset with <strong>k columns</strong> instead of the original n columns, where each column is uncorrelated with all others.</p>
+
+  <h3 style="margin-top:1.5rem">Transformed Student Data (k=1)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Original Data (3 features)</th><th>PC1 Score (1 feature)</th><th>Interpretation</th></tr></thead>
+      <tbody>
+        <tr><td>Alice</td><td>85, 82, 8</td><td style="color:var(--blue)">+0.54</td><td>Above average</td></tr>
+        <tr><td>Bob</td><td>60, 65, 5</td><td style="color:var(--rose)">−2.45</td><td>Well below average</td></tr>
+        <tr><td>Carol</td><td>92, 90, 10</td><td style="color:var(--green)">+2.46</td><td>Top performer</td></tr>
+        <tr><td>Dave</td><td>70, 68, 6</td><td style="color:var(--rose)">−1.22</td><td>Below average</td></tr>
+        <tr><td>Eve</td><td>78, 75, 7</td><td>0.00</td><td>Exactly average</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box green">
+    <div class="info-title">Result</div>
+    We compressed 3 features into 1 number (PC1) that represents overall academic performance, retaining 98% of the original information. Carol is clearly the top performer, Bob is the weakest — immediately visible from one number.
+  </div>
+
+  <p>To reconstruct the original data (approximately), use <code>inverse_transform</code>:</p>
+
+<pre>pca = PCA(n_components=<span class="nm">1</span>)
+X_pca = pca.<fn>fit_transform</span>(X_scaled)        <span class="cm"># compress: (5,3) → (5,1)</span>
+X_back = pca.<fn>inverse_transform</span>(X_pca)     <span class="cm"># reconstruct: (5,1) → (5,3)</span>
+
+<span class="cm"># X_back ≈ X_scaled (not exact — we lost the 2% in PC2+PC3)</span>
+reconstruction_error = np.<fn>mean</span>((X_scaled - X_back)**<span class="nm">2</span>)
+<span class="fn">print</span>(<span class="st">f"Reconstruction MSE: {reconstruction_error:.4f}"</span>)</pre>
+</section>
+
+<!-- ════════════════════════════════════════════ PYTHON FULL -->
+<section id="python">
+  <div class="section-eyebrow">In Practice · Code</div>
+  <h2>Complete Python Implementation</h2>
+  <p>Here is a complete, production-ready PCA implementation using scikit-learn with all best practices.</p>
+
+<pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.decomposition <span class="kw">import</span> PCA
+<span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> Pipeline
+
+<span class="cm"># ─── 1. Load and prepare data ───────────────────────────────</span>
+df = pd.<fn>read_csv</span>(<span class="st">'dataset.csv'</span>)
+X = df.drop(<span class="st">'target'</span>, axis=<span class="nm">1</span>)
+
+<span class="cm"># ─── 2. Build PCA pipeline ──────────────────────────────────</span>
+pipeline = Pipeline([
+    (<span class="st">'scaler'</span>, StandardScaler()),        <span class="cm"># always standardize first!</span>
+    (<span class="st">'pca'</span>,    PCA(n_components=<span class="nm">0.95</span>))  <span class="cm"># keep 95% variance</span>
+])
+
+X_pca = pipeline.<fn>fit_transform</span>(X)
+pca   = pipeline.named_steps[<span class="st">'pca'</span>]
+
+<span class="cm"># ─── 3. Examine results ─────────────────────────────────────</span>
+k = pca.n_components_
+<span class="fn">print</span>(<span class="st">f"Original features:  {X.shape[1]}"</span>)
+<span class="fn">print</span>(<span class="st">f"PCA components kept: {k}"</span>)
+<span class="fn">print</span>(<span class="st">f"Variance retained:  {pca.explained_variance_ratio_.sum():.1%}"</span>)
+
+<span class="cm"># ─── 4. Scree plot ───────────────────────────────────────────</span>
+plt.<fn>figure</span>(figsize=(<span class="nm">8</span>, <span class="nm">4</span>))
+plt.<fn>bar</span>(<span class="fn">range</span>(<span class="nm">1</span>, k+<span class="nm">1</span>), pca.explained_variance_ratio_, color=<span class="st">'#4f8ef7'</span>)
+plt.<fn>plot</span>(<span class="fn">range</span>(<span class="nm">1</span>, k+<span class="nm">1</span>), pca.explained_variance_ratio_.<fn>cumsum</span>(), <span class="st">'r--'</span>)
+plt.<fn>xlabel</span>(<span class="st">'Principal Component'</span>)
+plt.<fn>ylabel</span>(<span class="st">'Variance Explained'</span>)
+plt.<fn>title</span>(<span class="st">'Scree Plot'</span>)
+plt.<fn>show</span>()
+
+<span class="cm"># ─── 5. Use in ML model ─────────────────────────────────────</span>
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> cross_val_score
+
+full_pipeline = Pipeline([
+    (<span class="st">'scaler'</span>, StandardScaler()),
+    (<span class="st">'pca'</span>,    PCA(n_components=<span class="nm">0.95</span>)),
+    (<span class="st">'clf'</span>,    LogisticRegression())
+])
+
+scores = <fn>cross_val_score</span>(full_pipeline, X, df[<span class="st">'target'</span>], cv=<span class="nm">5</span>)
+<span class="fn">print</span>(<span class="st">f"CV Accuracy: {scores.mean():.1%} ± {scores.std():.1%}"</span>)</pre>
+</section>
+
+<!-- ════════════════════════════════════════════ VARIANCE -->
+<section id="variance">
+  <div class="section-eyebrow">In Practice · Decision</div>
+  <h2>How to Choose k (Explained Variance)</h2>
+  <p>The right value of k depends on your goals. Here is a practical decision guide:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Use Case</th><th>Recommended k</th><th>Variance to keep</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td>2D Visualization</td><td>k = 2</td><td>whatever it gives</td><td>Need exactly 2 for a scatter plot</td></tr>
+        <tr><td>3D Visualization</td><td>k = 3</td><td>whatever it gives</td><td>Need exactly 3 for 3D plot</td></tr>
+        <tr><td>ML preprocessing</td><td>auto (95% rule)</td><td>≥ 95%</td><td>Balance: info retention vs speed</td></tr>
+        <tr><td>Noise removal</td><td>auto (85% rule)</td><td>≥ 85%</td><td>Aggressively remove low-variance noise</td></tr>
+        <tr><td>Compression</td><td>depends on quality</td><td>80–90%</td><td>Trade quality for size/speed</td></tr>
+        <tr><td>Feature interpretation</td><td>small (3–5)</td><td>as much as possible</td><td>Human-interpretable components</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box amber">
+    <div class="info-title">Important Warning</div>
+    Using PCA with <code>n_components=0.99</code> is NOT always better than <code>0.95</code>. The last 4% of variance often contains mostly noise. Keeping noise hurts model performance. Always validate on a test set!
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ LOADINGS -->
+<section id="loadings">
+  <div class="section-eyebrow">In Practice · Interpretation</div>
+  <h2>Understanding Loadings</h2>
+  <p>PCA components are <strong>linear combinations</strong> of original features. The coefficients are called <strong>loadings</strong> (or component weights). They tell you which original features each principal component is "made of".</p>
+
+  <div class="formula">PC1 = w₁·feature₁ + w₂·feature₂ + ... + wₙ·featureₙ</div>
+
+  <h3 style="margin-top:1.5rem">Example: Student Loadings</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>PC1 Loading</th><th>PC2 Loading</th><th>Interpretation</th></tr></thead>
+      <tbody>
+        <tr><td>Math Score</td><td style="color:var(--blue)">+0.578</td><td style="color:var(--rose)">−0.401</td><td>Math drives PC1 strongly</td></tr>
+        <tr><td>Science Score</td><td style="color:var(--blue)">+0.575</td><td style="color:var(--rose)">−0.448</td><td>Science drives PC1 similarly</td></tr>
+        <tr><td>Study Hours</td><td style="color:var(--blue)">+0.579</td><td style="color:var(--green)">+0.800</td><td>Hours contributes equally to PC1, but uniquely to PC2</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box blue">
+    <div class="info-title">Reading the Loadings</div>
+    <strong>PC1</strong>: All loadings ≈ +0.578. This means PC1 is the "average" of all three subjects — it captures overall academic performance.<br><br>
+    <strong>PC2</strong>: Study hours loads very differently (+0.80) vs Math/Science (-0.40). PC2 represents students who study a lot but score below expectations — an "effort vs outcome" dimension.
+  </div>
+
+<pre>pca = PCA(n_components=<span class="nm">2</span>)
+pca.<fn>fit</span>(X_scaled)
+
+<span class="cm"># pca.components_ shape: (n_components, n_features)</span>
+loadings = pd.<fn>DataFrame</span>(
+    pca.components_.T,
+    index   = [<span class="st">'math'</span>, <span class="st">'science'</span>, <span class="st">'hours'</span>],
+    columns = [<span class="st">'PC1'</span>, <span class="st">'PC2'</span>]
+)
+
+<span class="fn">print</span>(loadings.round(<span class="nm">3</span>))
+<span class="cm">#          PC1    PC2</span>
+<span class="cm"># math     0.578 -0.401</span>
+<span class="cm"># science  0.575 -0.448</span>
+<span class="cm"># hours    0.579  0.800</span></pre>
+</section>
+
+<!-- ════════════════════════════════════════════ PROS CONS -->
+<section id="pros-cons">
+  <div class="section-eyebrow">In Practice · Evaluation</div>
+  <h2>Advantages & Disadvantages</h2>
+
+  <div class="vs-grid">
+    <div class="vs-card">
+      <div class="vs-head" style="background:var(--green-dim);color:var(--green)">ADVANTAGES</div>
+      <div class="vs-body">
+        <div class="vs-row"><span class="check">✓</span>Reduces overfitting by removing noisy features</div>
+        <div class="vs-row"><span class="check">✓</span>Dramatically speeds up model training</div>
+        <div class="vs-row"><span class="check">✓</span>Removes multicollinearity between features</div>
+        <div class="vs-row"><span class="check">✓</span>Enables visualization of high-dimensional data</div>
+        <div class="vs-row"><span class="check">✓</span>Can improve model accuracy by removing noise</div>
+        <div class="vs-row"><span class="check">✓</span>Unsupervised — no labels needed</div>
+        <div class="vs-row"><span class="check">✓</span>Well-studied with strong theoretical guarantees</div>
+      </div>
+    </div>
+    <div class="vs-card">
+      <div class="vs-head" style="background:var(--rose-dim);color:var(--rose)">DISADVANTAGES</div>
+      <div class="vs-body">
+        <div class="vs-row"><span class="cross">✗</span>Components are hard to interpret (not original features)</div>
+        <div class="vs-row"><span class="cross">✗</span>Always loses some information (information loss)</div>
+        <div class="vs-row"><span class="cross">✗</span>Assumes linear relationships only</div>
+        <div class="vs-row"><span class="cross">✗</span>Sensitive to outliers (use robust PCA if needed)</div>
+        <div class="vs-row"><span class="cross">✗</span>Requires standardization before use</div>
+        <div class="vs-row"><span class="cross">✗</span>Choosing k is subjective</div>
+        <div class="vs-row"><span class="cross">✗</span>Feature importance is lost after transformation</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ USE CASES -->
+<section id="use-cases">
+  <div class="section-eyebrow">Applications · 01</div>
+  <h2>When to Use PCA</h2>
+
+  <div class="toggle-wrap">
+    <div class="toggle-btns">
+      <button class="toggle-btn active" onclick="switchTab('usecase','yes')">Use PCA when...</button>
+      <button class="toggle-btn" onclick="switchTab('usecase','no')">Don't use PCA when...</button>
+    </div>
+
+    <div id="usecase-yes" class="toggle-pane active">
+      <div class="card-grid card-grid-2">
+        <div class="card">
+          <span class="badge badge-blue" style="margin-bottom:0.7rem">Features > 50</span>
+          <h3>High-dimensional data</h3>
+          <p>When you have many features and suspect many are correlated. Common in genomics, image processing, text analysis.</p>
+        </div>
+        <div class="card">
+          <span class="badge badge-teal" style="margin-bottom:0.7rem">High correlation</span>
+          <h3>Correlated features</h3>
+          <p>When a correlation matrix shows many values above 0.7–0.8, PCA will compress those into fewer dimensions effectively.</p>
+        </div>
+        <div class="card">
+          <span class="badge badge-amber" style="margin-bottom:0.7rem">Visualization</span>
+          <h3>Exploring data patterns</h3>
+          <p>When you want to see if natural clusters exist. Reduce to 2D and plot — you'll see groupings immediately.</p>
+        </div>
+        <div class="card">
+          <span class="badge badge-purple" style="margin-bottom:0.7rem">Overfitting</span>
+          <h3>Model regularization</h3>
+          <p>When your model overfits and adding more data isn't an option. PCA reduces the input space so the model generalizes better.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="usecase-no" class="toggle-pane">
+      <div class="card-grid card-grid-2">
+        <div class="card">
+          <span class="badge badge-rose" style="margin-bottom:0.7rem">Interpretability</span>
+          <h3>Need to know which features matter</h3>
+          <p>If you need to report "feature X is important", PCA destroys that. Use LASSO regression or feature importance from tree models instead.</p>
+        </div>
+        <div class="card">
+          <span class="badge badge-rose" style="margin-bottom:0.7rem">Few features</span>
+          <h3>Small feature set (&lt;10)</h3>
+          <p>PCA adds complexity without much benefit. If you only have 5–10 features, just use them directly.</p>
+        </div>
+        <div class="card">
+          <span class="badge badge-rose" style="margin-bottom:0.7rem">Non-linear</span>
+          <h3>Non-linear relationships</h3>
+          <p>PCA only finds linear patterns. Use Kernel PCA, t-SNE, or UMAP if the important structures in your data are non-linear.</p>
+        </div>
+        <div class="card">
+          <span class="badge badge-rose" style="margin-bottom:0.7rem">Classification</span>
+          <h3>Want class-aware reduction</h3>
+          <p>PCA ignores class labels. Use Linear Discriminant Analysis (LDA) instead — it specifically maximizes class separation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ VARIANTS -->
+<section id="variants">
+  <div class="section-eyebrow">Applications · 02</div>
+  <h2>PCA Variants & Alternatives</h2>
+  <p>Standard PCA has limitations. Here are specialized variants for different situations.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Method</th><th>When to use</th><th>Key difference from PCA</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Kernel PCA</strong></td><td>Non-linear data structure</td><td>Uses kernel trick to find non-linear components</td></tr>
+        <tr><td><strong>Sparse PCA</strong></td><td>Need interpretable components</td><td>Forces most loadings to be zero (sparse)</td></tr>
+        <tr><td><strong>Incremental PCA</strong></td><td>Huge datasets that don't fit in RAM</td><td>Processes data in mini-batches</td></tr>
+        <tr><td><strong>Randomized PCA</strong></td><td>Very high-dimensional, speed critical</td><td>Approximate SVD — much faster, slight accuracy loss</td></tr>
+        <tr><td><strong>Robust PCA</strong></td><td>Data with many outliers</td><td>Separates low-rank + sparse components</td></tr>
+        <tr><td><strong>TruncatedSVD / LSA</strong></td><td>Sparse text/NLP data</td><td>Works directly on sparse matrices (no centering)</td></tr>
+        <tr><td><strong>LDA</strong></td><td>Classification with class labels</td><td>Maximizes class separability, not variance</td></tr>
+        <tr><td><strong>t-SNE</strong></td><td>2D/3D visualization of clusters</td><td>Non-linear, preserves local structure, not for ML features</td></tr>
+        <tr><td><strong>UMAP</strong></td><td>Large datasets, visualization, features</td><td>Non-linear, preserves global + local structure, faster than t-SNE</td></tr>
+        <tr><td><strong>Autoencoder</strong></td><td>Complex non-linear compression</td><td>Deep learning version — learns complex representations</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box blue">
+    <div class="info-title">Quick Decision Guide</div>
+    <strong>Linear + unsupervised + fast?</strong> → Standard PCA<br>
+    <strong>Non-linear structure?</strong> → Kernel PCA or UMAP<br>
+    <strong>Have class labels?</strong> → LDA<br>
+    <strong>Visualization only?</strong> → t-SNE or UMAP<br>
+    <strong>Text / NLP?</strong> → TruncatedSVD (LSA)<br>
+    <strong>Outliers in data?</strong> → Robust PCA
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ GLOSSARY -->
+<section id="glossary">
+  <div class="section-eyebrow">Reference · Glossary</div>
+  <h2>Key Terms</h2>
+
+  <div class="glossary-grid">
+    <div class="gloss-card"><div class="gloss-term">Principal Component (PC)</div><div class="gloss-def">A new axis/feature created by PCA. Each PC is a linear combination of all original features, ordered by variance explained.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Eigenvalue (λ)</div><div class="gloss-def">A scalar that tells how much variance a principal component captures. Sum of all eigenvalues = total variance in the data.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Eigenvector</div><div class="gloss-def">A vector that defines the direction of a principal component. Always orthogonal (perpendicular) to other eigenvectors.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Covariance Matrix</div><div class="gloss-def">An n×n symmetric matrix showing how much each pair of features varies together. PCA computes eigenvectors of this matrix.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Explained Variance Ratio</div><div class="gloss-def">The fraction of total variance captured by each component: λᵢ / Σλ. Used to decide how many components to keep.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Loadings</div><div class="gloss-def">The coefficients (weights) that tell how much each original feature contributes to each principal component. Stored in pca.components_.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Scree Plot</div><div class="gloss-def">A bar/line chart of eigenvalues in descending order. The "elbow" point suggests the optimal number of components k.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Dimensionality Reduction</div><div class="gloss-def">The process of reducing the number of features while retaining as much information as possible.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Curse of Dimensionality</div><div class="gloss-def">As features increase, data becomes exponentially sparse, making ML harder. PCA directly addresses this problem.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Multicollinearity</div><div class="gloss-def">When two or more features are highly correlated. They carry redundant information that PCA compresses into fewer dimensions.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Standardization (Z-score)</div><div class="gloss-def">Transform features to mean=0, std=1. Required before PCA so large-scale features don't dominate small-scale ones.</div></div>
+    <div class="gloss-card"><div class="gloss-term">SVD (Singular Value Decomposition)</div><div class="gloss-def">The linear algebra algorithm used to efficiently compute PCA. sklearn's PCA uses SVD internally.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Reconstruction Error</div><div class="gloss-def">How much information was lost after PCA compression. Measured as MSE between original and reconstructed data.</div></div>
+    <div class="gloss-card"><div class="gloss-term">Biplot</div><div class="gloss-def">A visualization that shows both PCA scores (data points) and loadings (arrows for each original feature) in the same plot.</div></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ QUIZ -->
+<section id="quiz">
+  <div class="section-eyebrow">Self-Test · Quiz</div>
+  <h2>Test Your Understanding</h2>
+  <p>Click an answer to check if you are right. Explanations appear after answering.</p>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q1. What does PCA try to maximize when creating principal components?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'Q1')">Mean of the data</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Q1')">Variance in the projected direction</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q1')">Correlation between features</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q1')">Number of data points</div>
+    </div>
+    <div class="quiz-exp" id="exp-Q1">PCA finds the direction (eigenvector) along which the data spreads out the most — i.e., maximizing variance. This ensures the projection retains as much information as possible.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q2. Why must we standardize data BEFORE applying PCA?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'Q2')">To make the data normally distributed</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q2')">To reduce the number of features</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Q2')">So that features with large scales don't dominate the analysis</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q2')">To remove outliers from the data</div>
+    </div>
+    <div class="quiz-exp" id="exp-Q2">Without standardization, a feature with values 0–100,000 would dominate a feature with values 0–1, simply because of units. Standardization (mean=0, std=1) puts all features on equal footing.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q3. You apply PCA and get eigenvalues: [3.6, 1.2, 0.4, 0.1, 0.08]. How many components should you keep using the Kaiser rule?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'Q3')">1 component</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Q3')">2 components</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q3')">3 components</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q3')">5 components (all)</div>
+    </div>
+    <div class="quiz-exp" id="exp-Q3">The Kaiser rule says keep components where eigenvalue ≥ 1.0. Here, only PC1 (3.6) and PC2 (1.2) qualify. PC3 (0.4) is below 1.0, so we stop at k=2.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q4. After PCA, principal components are always:</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'Q4')">Identical to the original features</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q4')">Highly correlated with each other</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Q4')">Uncorrelated (orthogonal) with each other</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q4')">Always fewer than 3 dimensions</div>
+    </div>
+    <div class="quiz-exp" id="exp-Q4">A key property of PCA is that all principal components are orthogonal (perpendicular) to each other — they are completely uncorrelated. This is by mathematical design (eigenvectors of a symmetric matrix are orthogonal).</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q5. When would you use LDA instead of PCA?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'Q5')">When you have too many features</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Q5')">When you have class labels and want to maximize class separation</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q5')">When the data has outliers</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q5')">When the data is non-linear</div>
+    </div>
+    <div class="quiz-exp" id="exp-Q5">LDA (Linear Discriminant Analysis) uses class labels to find directions that maximize the distance between classes. PCA ignores labels — it maximizes variance without regard to which class data belongs to. Use LDA for classification preprocessing, PCA for unsupervised exploration.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q6. A PCA component has these loadings: [+0.9, +0.85, +0.88]. What does this tell you?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'Q6')">The features are independent of each other</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Q6')">All three features contribute positively and roughly equally — this PC captures their shared variation</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q6')">Only the first feature matters</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Q6')">The data needs more standardization</div>
+    </div>
+    <div class="quiz-exp" id="exp-Q6">When all loadings are large and positive (≈ same magnitude), the principal component represents the "average" or "overall level" of all three features together. This typically means the features are all measuring the same underlying construct.</div>
+  </div>
+
+  <div style="margin-top:1rem;padding:1rem;background:var(--bg3);border-radius:var(--r);text-align:center">
+    <span id="score-display" style="font-family:'Syne',sans-serif;font-size:1.1rem;color:var(--muted)">Answer the questions above to see your score</span>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div style="padding:3rem 2rem;max-width:1000px;margin:0 auto;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:gap;gap:1rem">
+  <div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#fff;margin-bottom:4px">PCA Complete Guide</div>
+    <div style="font-size:0.82rem;color:var(--dim)">Data Science Series · MSDE Program</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <span class="tag" style="font-size:0.78rem">Dimensionality Reduction</span>
+    <span class="tag" style="font-size:0.78rem">Linear Algebra</span>
+    <span class="tag" style="font-size:0.78rem">scikit-learn</span>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ── THEME TOGGLE ──
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  document.getElementById('theme-icon').textContent = isLight ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = isLight ? 'Dark Mode' : 'Light Mode';
+  localStorage.setItem('pca-theme', isLight ? 'light' : 'dark');
+}
+// restore saved theme
+if (localStorage.getItem('pca-theme') === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('theme-icon').textContent = '🌙';
+  document.getElementById('theme-label').textContent = 'Dark Mode';
+}
+
+// ── NAV ACTIVE STATE ──
+const sections = document.querySelectorAll('section[id], .hero');
+const links = document.querySelectorAll('#sidenav a');
+const progressBar = document.getElementById('progress-bar');
+
+function updateNav() {
+  const scrollY = window.scrollY;
+  const docH = document.documentElement.scrollHeight - window.innerHeight;
+  progressBar.style.transform = `scaleX(${scrollY / docH})`;
+
+  let current = '';
+  sections.forEach(s => { if (scrollY >= s.offsetTop - 120) current = s.id || 'hero'; });
+  links.forEach(l => {
+    const href = l.getAttribute('href').replace('#','');
+    l.classList.toggle('active', href === current);
+  });
+}
+window.addEventListener('scroll', updateNav, { passive: true });
+updateNav();
+
+// ── MOBILE NAV ──
+function toggleNav() {
+  document.getElementById('sidenav').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const nav = document.getElementById('sidenav');
+  if (!nav.contains(e.target) && !e.target.closest('#nav-toggle')) nav.classList.remove('open');
+});
+
+// ── TABS ──
+function switchTab(group, id) {
+  document.querySelectorAll(`[id^="${group}-"]`).forEach(p => p.classList.remove('active'));
+  document.getElementById(`${group}-${id}`).classList.add('active');
+  const btns = document.querySelectorAll(`.toggle-btns`);
+  btns.forEach(container => {
+    const allBtns = container.querySelectorAll('.toggle-btn');
+    allBtns.forEach((b, i) => {
+      const panes = container.nextElementSibling ? container.parentElement.querySelectorAll('.toggle-pane') : [];
+      b.classList.remove('active');
+    });
+  });
+  // simpler: just toggle based on onclick
+  event.currentTarget && event.currentTarget.closest('.toggle-btns') &&
+    event.currentTarget.closest('.toggle-btns').querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget && event.currentTarget.classList.add('active');
+}
+
+// ── QUIZ ──
+let answered = {};
+let correct = 0;
+const total = 6;
+
+function answer(el, isCorrect, qid) {
+  if (answered[qid]) return;
+  answered[qid] = true;
+
+  const opts = el.closest('.quiz-opts').querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.style.pointerEvents = 'none');
+
+  if (isCorrect) {
+    el.classList.add('correct');
+    correct++;
+  } else {
+    el.classList.add('wrong');
+    opts.forEach(o => {
+      o.setAttribute('data-onclick', o.getAttribute('onclick'));
+      if (o.getAttribute('onclick') && o.getAttribute('onclick').includes('true')) o.classList.add('reveal');
+    });
+  }
+
+  document.getElementById('exp-' + qid).classList.add('show');
+
+  const answered_count = Object.keys(answered).length;
+  const pct = Math.round((correct / answered_count) * 100);
+  const msg = answered_count === total
+    ? (correct === total ? '🏆 Perfect! All ' + total + '/' + total + ' correct!'
+      : correct >= 4 ? `Good work — ${correct}/${total} correct (${pct}%)`
+      : `Keep reviewing — ${correct}/${total} correct (${pct}%)`)
+    : `${correct}/${answered_count} correct so far`;
+  document.getElementById('score-display').textContent = msg;
+  document.getElementById('score-display').style.color = correct === answered_count ? 'var(--green)' : answered_count === total && correct < 4 ? 'var(--rose)' : 'var(--amber)';
+}
+
+// ── COPY BUTTONS ──
+const copyIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
+const checkIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+document.querySelectorAll('pre').forEach(pre => {
+  const wrap = document.createElement('div');
+  wrap.className = 'code-block';
+  pre.parentNode.insertBefore(wrap, pre);
+  wrap.appendChild(pre);
+
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.innerHTML = copyIcon + '<span>Copy</span>';
+  btn.title = 'Copy code';
+  wrap.appendChild(btn);
+
+  btn.addEventListener('click', () => {
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      btn.innerHTML = checkIcon + '<span>Copied!</span>';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = copyIcon + '<span>Copy</span>';
+      }, 2000);
+    }).catch(() => {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.classList.add('copied');
+      btn.innerHTML = checkIcon + '<span>Copied!</span>';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = copyIcon + '<span>Copy</span>';
+      }, 2000);
+    });
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCA — Problems & Solutions</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f8fafc; color: #1e293b; font-size: 18px; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+.hero { text-align: center; margin-bottom: 2.5rem; }
+.hero h1 { font-size: 2.8rem; font-weight: 700; color: #1e40af; line-height: 1.2; }
+.hero p { font-size: 1.3rem; color: #64748b; margin-top: 0.6rem; }
+
+.tabs { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; }
+.tab-btn {
+  padding: 12px 22px; border-radius: 10px; border: 2px solid #cbd5e1;
+  background: #fff; cursor: pointer; font-size: 1.05rem; font-weight: 600;
+  color: #64748b; transition: all 0.2s;
+}
+.tab-btn:hover { background: #eff6ff; color: #1e40af; border-color: #93c5fd; }
+.tab-btn.active { background: #1e40af; color: #fff; border-color: #1e40af; }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+.problem-header { border-radius: 14px; padding: 1.8rem; margin-bottom: 2rem; border: 1.5px solid #e2e8f0; }
+.domain-badge { display: inline-block; font-size: 0.9rem; font-weight: 700; padding: 5px 16px; border-radius: 20px; margin-bottom: 0.9rem; letter-spacing: 0.04em; }
+.problem-title { font-size: 2rem; font-weight: 700; line-height: 1.3; }
+.problem-desc { font-size: 1.1rem; color: #475569; margin-top: 0.6rem; line-height: 1.6; }
+
+.section-label { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.9rem; margin-top: 0.2rem; }
+
+.data-grid { display: grid; gap: 12px; margin-bottom: 2rem; }
+.data-grid-2 { grid-template-columns: 1fr 1fr; }
+.data-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.data-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+.metric-card { background: #f1f5f9; border-radius: 10px; padding: 1.1rem; text-align: center; border: 1px solid #e2e8f0; }
+.metric-label { font-size: 0.9rem; color: #64748b; margin-bottom: 6px; font-weight: 500; }
+.metric-value { font-size: 1.9rem; font-weight: 700; color: #1e293b; }
+.metric-sub { font-size: 0.85rem; color: #94a3b8; margin-top: 3px; }
+
+.steps-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 2rem; }
+.step { display: flex; gap: 16px; align-items: flex-start; background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.2rem; }
+.step-num { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; flex-shrink: 0; }
+.step-body { flex: 1; }
+.step-title { font-size: 1.15rem; font-weight: 700; color: #1e293b; margin-bottom: 5px; }
+.step-desc { font-size: 1rem; color: #475569; line-height: 1.6; }
+
+.result-box { border-radius: 14px; padding: 1.4rem 1.6rem; margin-bottom: 2rem; border-left: 5px solid; border-top: 1.5px solid #e2e8f0; border-right: 1.5px solid #e2e8f0; border-bottom: 1.5px solid #e2e8f0; }
+.result-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.6rem; }
+.result-item { font-size: 1rem; color: #334155; display: flex; align-items: flex-start; gap: 10px; line-height: 1.6; margin-bottom: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
+
+.comp-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-size: 1rem; }
+.comp-table th { padding: 12px 16px; font-weight: 700; font-size: 0.9rem; color: #64748b; border-bottom: 2px solid #e2e8f0; text-align: left; background: #f8fafc; }
+.comp-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+.comp-table tr:last-child td { border-bottom: none; }
+.comp-table tr:hover td { background: #f8fafc; }
+
+.bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.bar-label { font-size: 0.95rem; min-width: 110px; color: #475569; font-weight: 500; }
+.bar-track { flex: 1; height: 26px; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 0.9rem; font-weight: 700; }
+.bar-pct { font-size: 0.95rem; font-weight: 700; min-width: 50px; text-align: right; }
+
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 2rem; }
+.summary-card { background: #fff; border-radius: 14px; padding: 1.3rem; text-align: center; cursor: pointer; border: 1.5px solid #e2e8f0; transition: all 0.15s; }
+.summary-card:hover { border-color: #93c5fd; background: #eff6ff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.summary-card .num { font-size: 2.2rem; font-weight: 700; margin-bottom: 5px; }
+.summary-card .name { font-size: 1rem; font-weight: 600; color: #334155; }
+.summary-card .domain { font-size: 0.85rem; color: #94a3b8; margin-top: 3px; }
+
+.formula-box { background: #1e293b; color: #e2e8f0; border-radius: 12px; padding: 1.3rem 1.6rem; font-family: 'Courier New', monospace; font-size: 1.05rem; margin-bottom: 1.5rem; line-height: 2; border: 1.5px solid #334155; }
+
+@media (max-width: 600px) {
+  .data-grid-4 { grid-template-columns: 1fr 1fr; }
+  .data-grid-3 { grid-template-columns: 1fr 1fr; }
+  .hero h1 { font-size: 2rem; }
+  .problem-title { font-size: 1.5rem; }
+  .bar-label { min-width: 80px; font-size: 0.85rem; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>PCA — Problems &amp; Solutions</h1>
+    <p>5 real-world problems, explained step by step</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showPanel(0)">Overview</button>
+    <button class="tab-btn" onclick="showPanel(1)">1. E-Commerce</button>
+    <button class="tab-btn" onclick="showPanel(2)">2. Images</button>
+    <button class="tab-btn" onclick="showPanel(3)">3. Medical</button>
+    <button class="tab-btn" onclick="showPanel(4)">4. Stocks</button>
+    <button class="tab-btn" onclick="showPanel(5)">5. Spam</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="panel active" id="panel-0">
+    <p class="section-label">All 5 problems at a glance — click to explore</p>
+    <div class="summary-grid">
+      <div class="summary-card" onclick="showPanel(1)"><div class="num" style="color:#2563eb">8→3</div><div class="name">E-Commerce</div><div class="domain">Customer segmentation</div></div>
+      <div class="summary-card" onclick="showPanel(2)"><div class="num" style="color:#7c3aed">256→50</div><div class="name">Image</div><div class="domain">Compression</div></div>
+      <div class="summary-card" onclick="showPanel(3)"><div class="num" style="color:#dc2626">15→5</div><div class="name">Medical</div><div class="domain">Heart disease</div></div>
+      <div class="summary-card" onclick="showPanel(4)"><div class="num" style="color:#d97706">20→5</div><div class="name">Stocks</div><div class="domain">Portfolio analysis</div></div>
+      <div class="summary-card" onclick="showPanel(5)"><div class="num" style="color:#059669">10k→100</div><div class="name">Spam</div><div class="domain">Email detection</div></div>
+    </div>
+
+    <p class="section-label">Universal PCA formula (same for every problem)</p>
+    <div class="formula-box">
+      Step 1 → Standardize data (mean=0, std=1)<br>
+      Step 2 → Compute Covariance Matrix<br>
+      Step 3 → Get Eigenvalues &amp; Eigenvectors<br>
+      Step 4 → Select top k components (≥ 85–95% variance)<br>
+      Step 5 → Transform data into new k-dimensional space
+    </div>
+
+    <p class="section-label">Variance retained / accuracy — comparison</p>
+    <div style="margin-bottom:2rem">
+      <div class="bar-row"><span class="bar-label">E-Commerce</span><div class="bar-track"><div class="bar-fill" style="width:85.9%;background:#2563eb;color:#fff">85.9%</div></div><span class="bar-pct" style="color:#2563eb">8→3</span></div>
+      <div class="bar-row"><span class="bar-label">Image</span><div class="bar-track"><div class="bar-fill" style="width:88.7%;background:#7c3aed;color:#fff">88.7%</div></div><span class="bar-pct" style="color:#7c3aed">256→50</span></div>
+      <div class="bar-row"><span class="bar-label">Medical</span><div class="bar-track"><div class="bar-fill" style="width:85.1%;background:#dc2626;color:#fff">85.1%</div></div><span class="bar-pct" style="color:#dc2626">15→5</span></div>
+      <div class="bar-row"><span class="bar-label">Stocks</span><div class="bar-track"><div class="bar-fill" style="width:74.9%;background:#d97706;color:#fff">74.9%</div></div><span class="bar-pct" style="color:#d97706">20→5</span></div>
+      <div class="bar-row"><span class="bar-label">Spam (acc.)</span><div class="bar-track"><div class="bar-fill" style="width:93.1%;background:#059669;color:#fff">93.1%</div></div><span class="bar-pct" style="color:#059669">10k→100</span></div>
+    </div>
+  </div>
+
+  <!-- PROBLEM 1 -->
+  <div class="panel" id="panel-1">
+    <div class="problem-header" style="background:#eff6ff">
+      <div class="domain-badge" style="background:#dbeafe;color:#1e40af">E-Commerce / Marketing</div>
+      <div class="problem-title" style="color:#1e40af">Problem 1: Customer Segmentation</div>
+      <div class="problem-desc">A company has 8 features per customer. Clustering is slow, features overlap heavily. We need fewer, cleaner dimensions.</div>
+    </div>
+
+    <p class="section-label">Original features (8 dimensions)</p>
+    <div class="data-grid data-grid-4" style="margin-bottom:2rem">
+      <div class="metric-card"><div class="metric-label">age</div><div class="metric-value" style="font-size:1.2rem">18–65</div></div>
+      <div class="metric-card"><div class="metric-label">annual income</div><div class="metric-value" style="font-size:1.2rem">20k–150k</div></div>
+      <div class="metric-card"><div class="metric-label">spending score</div><div class="metric-value" style="font-size:1.2rem">1–100</div></div>
+      <div class="metric-card"><div class="metric-label">purchases</div><div class="metric-value" style="font-size:1.2rem">0–500</div></div>
+      <div class="metric-card"><div class="metric-label">avg order value</div><div class="metric-value" style="font-size:1.2rem">$10–500</div></div>
+      <div class="metric-card"><div class="metric-label">days since last</div><div class="metric-value" style="font-size:1.2rem">0–365</div></div>
+      <div class="metric-card"><div class="metric-label">email open rate</div><div class="metric-value" style="font-size:1.2rem">0–100%</div></div>
+      <div class="metric-card"><div class="metric-label">page views</div><div class="metric-value" style="font-size:1.2rem">0–1000</div></div>
+    </div>
+
+    <p class="section-label">Step-by-step solution</p>
+    <div class="steps-list">
+      <div class="step"><div class="step-num" style="background:#dbeafe;color:#1e40af">1</div><div class="step-body"><div class="step-title">Standardize all 8 features</div><div class="step-desc">Scale to mean=0, std=1. Without this, page_views (0–1000) would dominate over age (18–65).</div></div></div>
+      <div class="step"><div class="step-num" style="background:#dbeafe;color:#1e40af">2</div><div class="step-body"><div class="step-title">Find correlations</div><div class="step-desc">annual_income ↔ avg_order_value: r=0.89 (very high). num_purchases ↔ spending_score: r=0.76. These pairs carry redundant info — PCA will merge them.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#dbeafe;color:#1e40af">3</div><div class="step-body"><div class="step-title">Compute eigenvalues</div><div class="step-desc">PC1 = 47.8%, PC2 = 24.2%, PC3 = 13.9%. Together: 85.9% of all information captured.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#dbeafe;color:#1e40af">4</div><div class="step-body"><div class="step-title">Keep 3 components (85.9%)</div><div class="step-desc">Reduce from 8 features to 3 principal components — each has a clear business meaning.</div></div></div>
+    </div>
+
+    <p class="section-label">What each component means</p>
+    <table class="comp-table">
+      <thead><tr><th>Component</th><th>Driven by</th><th>Business meaning</th></tr></thead>
+      <tbody>
+        <tr><td><strong>PC1</strong></td><td>income, order_value, spending_score</td><td>Purchasing Power (wealth)</td></tr>
+        <tr><td><strong>PC2</strong></td><td>page_views, email_open_rate</td><td>Digital Engagement</td></tr>
+        <tr><td><strong>PC3</strong></td><td>age, days_since_last</td><td>Customer Lifecycle stage</td></tr>
+      </tbody>
+    </table>
+
+    <div class="result-box" style="border-left-color:#2563eb;background:#eff6ff">
+      <div class="result-title" style="color:#1e40af">Result</div>
+      <div class="result-item"><div class="dot" style="background:#2563eb"></div>Dimensions reduced: 8 → 3 (saves 62.5% of features)</div>
+      <div class="result-item"><div class="dot" style="background:#2563eb"></div>Information retained: 85.9%</div>
+      <div class="result-item"><div class="dot" style="background:#2563eb"></div>Clustering is 4× faster</div>
+      <div class="result-item"><div class="dot" style="background:#2563eb"></div>3 clear segments found: VIP customers, Deal hunters, At-risk customers</div>
+    </div>
+  </div>
+
+  <!-- PROBLEM 2 -->
+  <div class="panel" id="panel-2">
+    <div class="problem-header" style="background:#f5f3ff">
+      <div class="domain-badge" style="background:#ede9fe;color:#5b21b6">Computer Vision</div>
+      <div class="problem-title" style="color:#5b21b6">Problem 2: Image Compression</div>
+      <div class="problem-desc">A 256×256 grayscale image has 256 features (pixel columns). Adjacent pixels are highly correlated — PCA exploits this to compress.</div>
+    </div>
+
+    <p class="section-label">Key numbers</p>
+    <div class="data-grid data-grid-3" style="margin-bottom:2rem">
+      <div class="metric-card"><div class="metric-label">Original size</div><div class="metric-value">65,536</div><div class="metric-sub">pixel values</div></div>
+      <div class="metric-card"><div class="metric-label">Features</div><div class="metric-value">256</div><div class="metric-sub">pixel columns</div></div>
+      <div class="metric-card"><div class="metric-label">Pixel correlation</div><div class="metric-value">~90%</div><div class="metric-sub">highly redundant</div></div>
+    </div>
+
+    <p class="section-label">Choosing k — quality vs compression tradeoff</p>
+    <div style="margin-bottom:2rem">
+      <div class="bar-row"><span class="bar-label">k=256 (full)</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#7c3aed;color:#fff">100% variance</div></div><span class="bar-pct" style="color:#94a3b8">1× size</span></div>
+      <div class="bar-row"><span class="bar-label">k=100</span><div class="bar-track"><div class="bar-fill" style="width:95.2%;background:#7c3aed;color:#fff">95.2%</div></div><span class="bar-pct" style="color:#7c3aed">1.3×</span></div>
+      <div class="bar-row"><span class="bar-label">k=50 ← best</span><div class="bar-track"><div class="bar-fill" style="width:88.7%;background:#5b21b6;color:#fff">88.7%</div></div><span class="bar-pct" style="color:#5b21b6">2.6×</span></div>
+      <div class="bar-row"><span class="bar-label">k=20</span><div class="bar-track"><div class="bar-fill" style="width:76.3%;background:#8b5cf6;color:#fff">76.3%</div></div><span class="bar-pct" style="color:#8b5cf6">6.4×</span></div>
+      <div class="bar-row"><span class="bar-label">k=5</span><div class="bar-track"><div class="bar-fill" style="width:45%;background:#c4b5fd;color:#5b21b6">45% (blurry)</div></div><span class="bar-pct" style="color:#94a3b8">25.6×</span></div>
+    </div>
+
+    <p class="section-label">Step-by-step process</p>
+    <div class="steps-list">
+      <div class="step"><div class="step-num" style="background:#ede9fe;color:#5b21b6">1</div><div class="step-body"><div class="step-title">Treat each row as a data sample</div><div class="step-desc">256 rows = 256 samples, each with 256 pixel intensity features. Normalize pixel values from 0–255 to 0–1.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#ede9fe;color:#5b21b6">2</div><div class="step-body"><div class="step-title">Apply PCA with k=50</div><div class="step-desc">Transform 256×256 → 256×50. Only 50 components needed to represent 88.7% of visual information.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#ede9fe;color:#5b21b6">3</div><div class="step-body"><div class="step-title">Reconstruct the image</div><div class="step-desc">Use inverse_transform: 256×50 → back to 256×256. The result looks nearly identical to the original.</div></div></div>
+    </div>
+
+    <div class="result-box" style="border-left-color:#7c3aed;background:#f5f3ff">
+      <div class="result-title" style="color:#5b21b6">Sweet spot: k = 50</div>
+      <div class="result-item"><div class="dot" style="background:#7c3aed"></div>2.6× smaller file size</div>
+      <div class="result-item"><div class="dot" style="background:#7c3aed"></div>88.7% variance retained — looks nearly identical to original</div>
+      <div class="result-item"><div class="dot" style="background:#7c3aed"></div>Only 50 numbers per row instead of 256</div>
+    </div>
+  </div>
+
+  <!-- PROBLEM 3 -->
+  <div class="panel" id="panel-3">
+    <div class="problem-header" style="background:#fef2f2">
+      <div class="domain-badge" style="background:#fee2e2;color:#991b1b">Healthcare</div>
+      <div class="problem-title" style="color:#991b1b">Problem 3: Medical Diagnosis</div>
+      <div class="problem-desc">15 lab tests per patient to predict heart disease risk. Many tests are correlated — PCA removes redundancy and actually improves accuracy.</div>
+    </div>
+
+    <p class="section-label">Hidden correlations (why PCA helps)</p>
+    <table class="comp-table">
+      <thead><tr><th>Feature pair</th><th>Correlation</th><th>What PCA does</th></tr></thead>
+      <tbody>
+        <tr><td>total_cholesterol + hdl + ldl</td><td><strong style="color:#dc2626">r = 0.95</strong></td><td>Merges into 1 component</td></tr>
+        <tr><td>blood_pressure + heart_rate</td><td>r = 0.78</td><td>Partially merges</td></tr>
+        <tr><td>bmi + waist_hip_ratio</td><td>r = 0.82</td><td>Merges into 1 component</td></tr>
+        <tr><td>glucose + triglycerides</td><td>r = 0.69</td><td>Partially merges</td></tr>
+      </tbody>
+    </table>
+
+    <p class="section-label">PCA components — each has a clinical meaning</p>
+    <div class="steps-list">
+      <div class="step"><div class="step-num" style="background:#fee2e2;color:#991b1b">PC1</div><div class="step-body"><div class="step-title">Cholesterol profile — 31.2% variance</div><div class="step-desc">Driven by total_cholesterol, HDL, LDL. Represents overall lipid health.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#fee2e2;color:#991b1b">PC2</div><div class="step-body"><div class="step-title">Cardiovascular stress — 19.8%</div><div class="step-desc">Driven by blood_pressure and heart_rate. How hard the heart is working.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#fee2e2;color:#991b1b">PC3</div><div class="step-body"><div class="step-title">Metabolic syndrome — 14.1%</div><div class="step-desc">Driven by BMI, waist_hip_ratio, glucose. Obesity and diabetes risk factors.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#fee2e2;color:#991b1b">PC4</div><div class="step-body"><div class="step-title">Blood composition — 11.3%</div><div class="step-desc">Driven by hemoglobin and white blood cells.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#fee2e2;color:#991b1b">PC5</div><div class="step-body"><div class="step-title">Kidney markers — 8.7%</div><div class="step-desc">Driven by creatinine and uric acid levels.</div></div></div>
+    </div>
+
+    <p class="section-label">Model performance: before vs after PCA</p>
+    <div class="data-grid data-grid-4" style="margin-bottom:2rem">
+      <div class="metric-card"><div class="metric-label">Accuracy (raw 15)</div><div class="metric-value" style="color:#dc2626">71%</div></div>
+      <div class="metric-card"><div class="metric-label">Accuracy (PCA 5)</div><div class="metric-value" style="color:#16a34a">79%</div></div>
+      <div class="metric-card"><div class="metric-label">AUC-ROC (raw)</div><div class="metric-value" style="color:#dc2626">0.74</div></div>
+      <div class="metric-card"><div class="metric-label">AUC-ROC (PCA)</div><div class="metric-value" style="color:#16a34a">0.83</div></div>
+    </div>
+
+    <div class="result-box" style="border-left-color:#dc2626;background:#fef2f2">
+      <div class="result-title" style="color:#991b1b">Key insight: removing noise improves accuracy</div>
+      <div class="result-item"><div class="dot" style="background:#dc2626"></div>Accuracy improved +8% by removing redundant tests</div>
+      <div class="result-item"><div class="dot" style="background:#dc2626"></div>Training 4.7× faster (4.2s → 0.9s)</div>
+      <div class="result-item"><div class="dot" style="background:#dc2626"></div>5 components map to clinically meaningful health dimensions</div>
+    </div>
+  </div>
+
+  <!-- PROBLEM 4 -->
+  <div class="panel" id="panel-4">
+    <div class="problem-header" style="background:#fffbeb">
+      <div class="domain-badge" style="background:#fef3c7;color:#92400e">Finance</div>
+      <div class="problem-title" style="color:#92400e">Problem 4: Stock Market Factors</div>
+      <div class="problem-desc">20 stocks, 252 trading days. 190 correlation pairs — impossible to analyze manually. PCA reveals the hidden forces driving prices.</div>
+    </div>
+
+    <p class="section-label">5 hidden factors PCA discovers</p>
+    <div class="steps-list">
+      <div class="step"><div class="step-num" style="background:#fef3c7;color:#92400e">F1</div><div class="step-body"><div class="step-title">Market-wide movement — 38.5%</div><div class="step-desc">All 20 stocks load positively. This is the "market beta" — when the whole market rises or falls together.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#fef3c7;color:#92400e">F2</div><div class="step-body"><div class="step-title">Tech vs Energy — 14.2%</div><div class="step-desc">AAPL/MSFT load +0.82. XOM/CVX load -0.79. When tech rises, energy often falls — and vice versa.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#fef3c7;color:#92400e">F3</div><div class="step-body"><div class="step-title">Growth vs Value — 9.1%</div><div class="step-desc">AMZN/NFLX (high growth) vs JPM/PG (stable value). Captures growth-value rotation cycles.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#fef3c7;color:#92400e">F4</div><div class="step-body"><div class="step-title">Healthcare vs Consumer — 7.3%</div><div class="step-desc">JNJ/PFE vs KO/PEP. Defensive sector rotation during market uncertainty.</div></div></div>
+      <div class="step"><div class="step-num" style="background:#fef3c7;color:#92400e">F5</div><div class="step-body"><div class="step-title">Cap size factor — 5.8%</div><div class="step-desc">Small cap vs large cap performance divergence over time.</div></div></div>
+    </div>
+
+    <p class="section-label">Factor 2 stock loadings (Tech vs Energy axis)</p>
+    <div style="margin-bottom:2rem">
+      <div class="bar-row"><span class="bar-label">AAPL / MSFT</span><div class="bar-track"><div class="bar-fill" style="width:82%;background:#2563eb;color:#fff">+0.82 (Tech UP)</div></div></div>
+      <div class="bar-row"><span class="bar-label">AMZN / NFLX</span><div class="bar-track"><div class="bar-fill" style="width:71%;background:#3b82f6;color:#fff">+0.71</div></div></div>
+      <div class="bar-row"><span class="bar-label">JNJ / KO (neutral)</span><div class="bar-track"><div class="bar-fill" style="width:5%;background:#d1d5db;color:#6b7280">~0</div></div></div>
+      <div class="bar-row"><span class="bar-label">CAT / GE</span><div class="bar-track"><div class="bar-fill" style="width:65%;background:#f59e0b;color:#fff">-0.65 (Energy)</div></div></div>
+      <div class="bar-row"><span class="bar-label">XOM / CVX</span><div class="bar-track"><div class="bar-fill" style="width:79%;background:#d97706;color:#fff">-0.79 (Energy DOWN)</div></div></div>
+    </div>
+
+    <div class="result-box" style="border-left-color:#d97706;background:#fffbeb">
+      <div class="result-title" style="color:#92400e">Financial insight</div>
+      <div class="result-item"><div class="dot" style="background:#d97706"></div>Only 5 true independent risk factors exist across 20 stocks — not 190 pairs</div>
+      <div class="result-item"><div class="dot" style="background:#d97706"></div>Factor 2 reveals the Tech↑ = Energy↓ trade-off — invisible from raw data</div>
+      <div class="result-item"><div class="dot" style="background:#d97706"></div>True diversification: pick stocks from different factors, not just different sectors</div>
+    </div>
+  </div>
+
+  <!-- PROBLEM 5 -->
+  <div class="panel" id="panel-5">
+    <div class="problem-header" style="background:#f0fdf4">
+      <div class="domain-badge" style="background:#d1fae5;color:#065f46">NLP / Text</div>
+      <div class="problem-title" style="color:#065f46">Problem 5: Spam Email Detection</div>
+      <div class="problem-desc">5,000 emails → TF-IDF → 10,000 word features. Too many, too sparse, too slow. PCA groups similar words into spam "topics".</div>
+    </div>
+
+    <p class="section-label">The scale of the problem</p>
+    <div class="data-grid data-grid-3" style="margin-bottom:2rem">
+      <div class="metric-card"><div class="metric-label">Raw features</div><div class="metric-value" style="color:#dc2626">10,000</div><div class="metric-sub">unique words</div></div>
+      <div class="metric-card"><div class="metric-label">Matrix density</div><div class="metric-value" style="color:#dc2626">&lt; 2%</div><div class="metric-sub">very sparse</div></div>
+      <div class="metric-card"><div class="metric-label">Train time (raw)</div><div class="metric-value" style="color:#dc2626">3m 12s</div><div class="metric-sub">way too slow</div></div>
+    </div>
+
+    <p class="section-label">PCA discovers hidden spam topics</p>
+    <table class="comp-table">
+      <thead><tr><th>Component</th><th>Top words</th><th>Spam topic</th></tr></thead>
+      <tbody>
+        <tr><td><strong>PC1</strong></td><td>free, win, prize, click, cash, winner</td><td>PRIZE_SPAM</td></tr>
+        <tr><td><strong>PC2</strong></td><td>buy, cheap, discount, sale, deal, save</td><td>COMMERCIAL_SPAM</td></tr>
+        <tr><td><strong>PC3</strong></td><td>viagra, pills, pharmacy, prescription, drug</td><td>PHARMA_SPAM</td></tr>
+        <tr><td><strong>PC4</strong></td><td>bank, account, verify, password, login</td><td>PHISHING</td></tr>
+        <tr><td><strong>PC5</strong></td><td>million, inheritance, nigeria, transfer, funds</td><td>SCAM_SPAM</td></tr>
+      </tbody>
+    </table>
+
+    <p class="section-label">Accuracy vs number of components k</p>
+    <div style="margin-bottom:2rem">
+      <div class="bar-row"><span class="bar-label">k=10,000 raw</span><div class="bar-track"><div class="bar-fill" style="width:89.2%;background:#94a3b8;color:#fff">89.2% acc</div></div><span class="bar-pct" style="color:#94a3b8">3m12s</span></div>
+      <div class="bar-row"><span class="bar-label">k=500</span><div class="bar-track"><div class="bar-fill" style="width:91.4%;background:#34d399;color:#065f46">91.4%</div></div><span class="bar-pct" style="color:#059669">48s</span></div>
+      <div class="bar-row"><span class="bar-label">k=200</span><div class="bar-track"><div class="bar-fill" style="width:92.7%;background:#10b981;color:#fff">92.7%</div></div><span class="bar-pct" style="color:#059669">19s</span></div>
+      <div class="bar-row"><span class="bar-label">k=100 ← best</span><div class="bar-track"><div class="bar-fill" style="width:93.1%;background:#059669;color:#fff">93.1% — BEST</div></div><span class="bar-pct" style="color:#059669">9s</span></div>
+      <div class="bar-row"><span class="bar-label">k=50</span><div class="bar-track"><div class="bar-fill" style="width:91.8%;background:#6ee7b7;color:#065f46">91.8%</div></div><span class="bar-pct" style="color:#059669">5s</span></div>
+    </div>
+
+    <div class="result-box" style="border-left-color:#059669;background:#f0fdf4">
+      <div class="result-title" style="color:#065f46">Surprising result: fewer features = better accuracy</div>
+      <div class="result-item"><div class="dot" style="background:#059669"></div>10,000 → 100 features: accuracy went UP from 89.2% to 93.1%</div>
+      <div class="result-item"><div class="dot" style="background:#059669"></div>Training 21× faster (3m12s → 9s)</div>
+      <div class="result-item"><div class="dot" style="background:#059669"></div>Noise words removed — model learns cleaner spam patterns</div>
+      <div class="result-item"><div class="dot" style="background:#059669"></div>PCA on text = LSA (Latent Semantic Analysis) — widely used in NLP</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showPanel(n) {
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===n));
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+</script>
+</body>
+</html>
